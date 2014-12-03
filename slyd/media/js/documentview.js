@@ -33,7 +33,7 @@ ASTool.DocumentViewListener = Em.Mixin.create({
 		elementHovered: function(element, mouseX, mouseY) {},
 
 		// Selection mode with partial selections enabled.
-		partialSelection: function(textSelection) {},
+		partialSelection: function(textSelection, mouseX, mouseY) {},
 	}
 }),
 
@@ -377,7 +377,7 @@ ASTool.DocumentView = Em.Object.extend({
 					this.set('hoveredSprite',
 							 ASTool.ElementSprite.create({'element': target}));
 					this.redrawNow();
-					this.sendElementHoveredEvent(target, 100, event.clientX, event.clientY);
+					this.sendElementHoveredEvent(target, 0, event.clientX, event.clientY);
 				}
 			}
 		}
@@ -403,7 +403,7 @@ ASTool.DocumentView = Em.Object.extend({
 		event.preventDefault();
 		var linkingElement = $(event.target).closest('[href]');
 		if (linkingElement.length) {
-			var href = $(linkingElement).attr('href');
+			var href = $(linkingElement).get(0).href;
         	this.sendDocumentEvent('linkClicked', href);	
 		}
 	},
@@ -426,7 +426,8 @@ ASTool.DocumentView = Em.Object.extend({
 		if (selectedText) {
 			if (this.get('partialSelectionEnabled')) {
 				if (selectedText.anchorNode == selectedText.focusNode) {
-					this.sendDocumentEvent('partialSelection', selectedText);
+					this.sendDocumentEvent(
+						'partialSelection', selectedText, event.clientX, event.clientY);
 				} else {
 					alert('The selected text must belong to a single HTML element');
 					selectedText.collapse();

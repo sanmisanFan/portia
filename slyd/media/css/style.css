@@ -256,7 +256,7 @@ body{
 	font-size:1.1em;
 	border:dotted 1px #AAA;
 	background-color:white;
-	width: 110px !important;
+	width: 106px !important;
 }
 
 .annotation-widget .attribute {
@@ -267,6 +267,11 @@ body{
 
 .annotation-widget .field {
 	width: 115px;
+	margin: 2px 5px 0px 0px;
+}
+
+.annotation-widget .variant-select {
+	width: 60px;
 	margin: 2px 0px 0px 0px;
 }
 
@@ -313,7 +318,7 @@ body{
 	margin:4px;
 	padding:4px;
 	color:#555;
-	display: none;
+	display: block;
 }
 
 .attribute-field-mapping {
@@ -367,6 +372,13 @@ body{
 	margin: 0px 4px 0px 4px;
 }
 
+.collapse-button {
+	pointer-events:all;
+	cursor:pointer;
+	font-weight:bold;
+	word-wrap:normal;
+}
+
 hr {
 	background-color: #BBB;
 	height: 1px;
@@ -418,8 +430,8 @@ a:hover {
 }
 
 select {
-  color: #333;
-  height: 1.0em;
+	color: #333;
+	height: 24px;
 }
 
 .ui-button {

@@ -174,7 +174,7 @@ ASTool.InlineTextField = Ember.View.extend({
 ASTool.FollowSelect = ASTool.Select.extend({
 	name: 'followSelect',
 	content: [{ option: 'all', label: 'Follow all in-domain links' },
-			  { option: 'none', label: 'Don not follow links' },
+			  { option: 'none', label: "Don't follow links" },
 			  { option: 'patterns', label: 'Configure follow and exclude patterns' }],
 });
 
@@ -194,30 +194,36 @@ ASTool.TypeSelect = ASTool.Select.extend({
 
 ASTool.VariantSelect = ASTool.Select.extend({
 
+	annotation: null,
+
+	valueBinding: Em.Binding.oneWay('annotation.variant'),
+
+	classNames: ['variant-select'],
+
 	content: function() {
-		var options = [{ option: 0, label: "Base(0)" }];
-		var maxVariant = this.get('controller.controllers.template_index.maxVariant');
+		var options = [{ option: 0, label: "Base" }];
+		var maxVariant = this.get('controller.maxVariant');
 		var i;
 		for (i = 1; i <= maxVariant; i++) {
-			options.pushObject({ option: i, label: 'Variant ' + i });
+			options.pushObject({ option: i, label: '#' + i });
 		}
 		options.pushObject({ option: i, label: 'Add new variant (' + i + ')' });
 		return options;
-	}.property('controller.controllers.template_index.maxVariant'),
+	}.property('controller.maxVariant'),
 
 	change: function() {
-		this.get('controller').send('variantSelected', parseInt(this.get('value')));
+		this.set('annotation.variant', parseInt(this.get('value')))
 	},
 
 	fixSelection: function() {
 		// When content is repopulated, the Select component loses its selection.
 		// This hack resets the selection to its correct value.
-		var tempValue = this.get('value');
+		var tempValue = this.get('annotation.variant');
 		this.set('value', null);
 		Ember.run.scheduleOnce('afterRender', this, function() {		
 			this.set('value', tempValue);
 		});
-	}.observes('content'),
+	}.observes('controller.maxVariant'),
 });
 
 
@@ -251,11 +257,12 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 
 	attributeValue: function() {
 		if (this.get('attributeName') && !Em.isEmpty(this.get('annotation.attributes'))) {
-			return trim(this.get('annotation.attributes').findBy('name', this.get('attributeName')).get('value'), 200);	
+			return this.get('annotation.attributes').findBy(
+				'name', this.get('attributeName')).get('value');	
 		} else {
 			return '< Empty attribute >';
 		}
-	}.property('attributeName', 'fieldName'),
+	}.property('attributeName', 'fieldName', 'trimTo'),
 
 	change: function() {	
 		if (this.get('fieldName') == 'create_field') {
@@ -277,7 +284,6 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 		showCreateFieldWidget: function() {
 			this.set('creatingField', true);
 			this.set('fieldName', '');
-			this.get('controller.documentView').setInteractionsBlocked(true);
 		},
 
 		createField: function() {
@@ -289,7 +295,14 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 								   		this.get('annotation'),
 								   		this.get('attributeName'),
 								   		this.get('fieldName'));
-			this.get('controller.documentView').setInteractionsBlocked(false);
+		},
+
+		switchTrim: function() {
+			this.set('trimTo', this.get('trimTo') == 40 ? 500 : 40);
+		},
+
+		dismiss: function() {
+			this.get('controller').send('hideFloatingAnnotationWidget');
 		},
 	},
 
@@ -399,6 +412,7 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 		if (this.get('inDoc')) {
  			$(this.get('element')).css({ 'top': this.get('pos.y'),
  								 		 'left': this.get('pos.x') - 100});
+ 			this.get('controller.documentView').setInteractionsBlocked(true);
  		}
 		this._super();
 		this.initValues();
@@ -737,6 +751,30 @@ ASTool.LabelWithTooltip = Em.View.extend ({
 ASTool.ImageView = Em.View.extend({
 	tagName: 'img',
 	attributeBindings: ['src', 'width'],
+});
+
+ASTool.CollapsibleText = Em.View.extend({
+	fullText: null,
+	tagName: 'span',
+	collapsed: true,
+	trimTo: 400,
+	templateName: 'collapsible-text',
+
+	collapsible: function() {
+		return this.get('fullText') && this.get('fullText').length > this.get('trimTo');
+	}.property('fullText', 'trimTo'),
+
+	displayedText: function() {
+		if (!this.get('collapsed')) {
+			return this.get('fullText');
+		} else {
+			return trim(this.get('fullText'), this.get('trimTo'));
+		}
+	}.property('collapsed', 'fullText', 'trimTo'),
+
+	click: function() {
+		this.set('collapsed', !this.get('collapsed'));
+	},
 });
 
 
